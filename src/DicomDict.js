@@ -1,6 +1,7 @@
 import { WriteBufferStream } from "./BufferStream";
 import { ValueRepresentation } from "./ValueRepresentation";
 import { TagHex } from "./constants/dicom";
+import { defaultDICOMEncoding } from "./constants/encodings";
 
 const EXPLICIT_LITTLE_ENDIAN = "1.2.840.10008.1.2.1";
 
@@ -22,13 +23,28 @@ class DicomDict {
         }
     }
 
-    write(writeOptions = { allowInvalidVRLength: false }) {
-        var metaSyntax = EXPLICIT_LITTLE_ENDIAN;
-        var fileStream = new WriteBufferStream(4096, true);
+    write(
+        writeOptions = {
+            allowInvalidVRLength: false,
+            encoding: defaultDICOMEncoding,
+            littleEndian: true
+        }
+    ) {
+        const metaSyntax = EXPLICIT_LITTLE_ENDIAN;
+        const fileStream = new WriteBufferStream(
+            4096,
+            writeOptions.littleEndian,
+            writeOptions.encoding
+        );
+
         fileStream.writeUint8Repeat(0, 128);
         fileStream.writeAsciiString("DICM");
 
-        var metaStream = new WriteBufferStream(1024);
+        const metaStream = new WriteBufferStream(
+            1024,
+            writeOptions.littleEndian,
+            writeOptions.encoding
+        );
         if (!this.meta[TagHex.TransferSyntaxUID]) {
             this.meta[TagHex.TransferSyntaxUID] = {
                 vr: "UI",
@@ -46,7 +62,7 @@ class DicomDict {
         );
         fileStream.concat(metaStream);
 
-        var useSyntax = this.meta[TagHex.TransferSyntaxUID].Value[0];
+        const useSyntax = this.meta[TagHex.TransferSyntaxUID].Value[0];
         DicomMessage.write(this.dict, fileStream, useSyntax, writeOptions);
         return fileStream.getBuffer();
     }
