@@ -469,7 +469,7 @@ export class BufferStream {
 export class ReadBufferStream extends BufferStream {
     constructor(
         buffer,
-        littleEndian,
+        littleEndian = false,
         options = {
             start: null,
             stop: null,
