@@ -4,7 +4,7 @@ import log from "./utilities/log.js";
 import addAccessors from "./utilities/addAccessors";
 import { ValueRepresentation } from "./ValueRepresentation";
 import { encapsulatedSyntaxes } from "./constants/syntaxes";
-import { defaultEncoding, encodingMapping } from "./constants/encodings";
+import { encodingMapping } from "./constants/encodings";
 import { sopClassNamesByUID } from "./constants/sopClassUIDs";
 
 export class DicomMetaDictionary {
@@ -404,6 +404,16 @@ export class DicomMetaDictionary {
         );
     }
 }
+
+/**
+ * Add a dicom encoding to main encoding map => `encodingMapping` from `utils/constants/encodings`.
+ *
+ * @param dicomEncoding
+ * @param webEncoding
+ * @returns {Map<unknown, unknown>}
+ */
+DicomMetaDictionary.addEncoding = (dicomEncoding, webEncoding) =>
+    encodingMapping.set(dicomEncoding, webEncoding);
 
 // TODO: Is this assignment necessary?
 DicomMetaDictionary.sopClassNamesByUID = sopClassNamesByUID;
