@@ -149,11 +149,14 @@ class Tag {
         stream.writeUint16(this.group());
         stream.writeUint16(this.element());
 
-        var tagStream = new WriteBufferStream(256),
-            valueLength;
-        tagStream.setEndian(isLittleEndian);
+        const tagStream = new WriteBufferStream(
+            256,
+            isLittleEndian,
+            writeOptions?.encoding
+        );
+        let valueLength;
 
-        if (vrType == "OW" || vrType == "OB" || vrType == "UN") {
+        if (vrType === "OW" || vrType === "OB" || vrType === "UN") {
             valueLength = vr.writeBytes(
                 tagStream,
                 values,
@@ -161,7 +164,7 @@ class Tag {
                 isEncapsulated,
                 writeOptions
             );
-        } else if (vrType == "SQ") {
+        } else if (vrType === "SQ") {
             valueLength = vr.writeBytes(
                 tagStream,
                 values,
@@ -172,10 +175,10 @@ class Tag {
             valueLength = vr.writeBytes(tagStream, values, writeOptions);
         }
 
-        if (vrType == "SQ") {
+        if (vrType === "SQ") {
             valueLength = UNDEFINED_LENGTH;
         }
-        var written = tagStream.size + 4;
+        let written = tagStream.size + 4;
 
         if (implicit) {
             stream.writeUint32(valueLength);
