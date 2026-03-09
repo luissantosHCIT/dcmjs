@@ -25,23 +25,6 @@ export class DicomBufferCODEC {
     }
 
     /**
-     * Main method for changing decoder.
-     *
-     * Given a DICOM encoding scheme like ISO 2022 IR 100, generate the correct
-     * string to use in JavaScript applications.
-     *
-     * Optionally, include whether to ignore or throw an exception if dicom to
-     * web encoding is not found in our mapping
-     *
-     * @param {string} dicomEncoding
-     * @param {boolean} ignoreErrors
-     */
-    setDecoder(dicomEncoding, ignoreErrors = false) {
-        let coding = selectNativeEncoding(dicomEncoding, ignoreErrors);
-        this.setNativeDecoder(coding);
-    }
-
-    /**
      * Unused since we typically default to utf-8. This method is provided for
      * convenience in case someone needs to encode a buffer in something else
      * before storing in a DICOM header.
@@ -64,9 +47,10 @@ export class DicomBufferCODEC {
      * @param {string} dicomEncoding
      * @param {boolean} ignoreErrors
      */
-    setEncoder(dicomEncoding, ignoreErrors = false) {
+    setEncoding(dicomEncoding, ignoreErrors = false) {
         let coding = selectNativeEncoding(dicomEncoding, ignoreErrors);
         this.setNativeEncoder(coding);
+        this.setNativeDecoder(coding);
     }
 
     /**

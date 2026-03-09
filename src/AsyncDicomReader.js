@@ -739,7 +739,7 @@ export class AsyncDicomReader {
                 let [coding] = values;
                 coding = coding.replace(/[_ ]/g, "-").toLowerCase();
                 if (encodingMapping.has(coding)) {
-                    this.stream.setDecoder(coding);
+                    this.stream.setEncoding(coding);
                 } else if (options?.ignoreErrors) {
                     log.warn(
                         `Unsupported character set: ${coding}, using default character set`

@@ -3,6 +3,7 @@ import SplitDataView from "./SplitDataView";
 import { toFloat } from "./utilities/toFloat";
 import { toInt } from "./utilities/toInt";
 import { DicomBufferCODEC } from "./BufferCODEC";
+import { defaultDICOMEncoding } from "./constants/encodings";
 
 export class BufferStream {
     offset = 0;
@@ -25,6 +26,8 @@ export class BufferStream {
         this.isLittleEndian = options?.littleEndian || this.isLittleEndian;
         this.view.defaultSize = options?.defaultSize ?? this.view.defaultSize;
         this.clearBuffers = options.clearBuffers || false;
+
+        this.setEncoding(options?.encoding || defaultDICOMEncoding);
     }
 
     /**
@@ -69,12 +72,8 @@ export class BufferStream {
         return true;
     }
 
-    setDecoder(dicomEncoding, ignoreErrors) {
-        this.codec.setDecoder(dicomEncoding, ignoreErrors);
-    }
-
-    setEncoder(dicomEncoding, ignoreErrors) {
-        this.codec.setEncoder(dicomEncoding, ignoreErrors);
+    setEncoding(dicomEncoding, ignoreErrors) {
+        this.codec.setEncoding(dicomEncoding, ignoreErrors);
     }
 
     setEndian(isLittleEndian = true) {
@@ -475,9 +474,10 @@ export class ReadBufferStream extends BufferStream {
             start: null,
             stop: null,
             noCopy: false
-        }
+        },
+        encoding = defaultDICOMEncoding
     ) {
-        super({ ...options, littleEndian });
+        super({ ...options, littleEndian, encoding });
         this.noCopy = options.noCopy;
 
         if (buffer instanceof BufferStream) {
@@ -576,8 +576,8 @@ export class DeflatedReadBufferStream extends ReadBufferStream {
 }
 
 export class WriteBufferStream extends BufferStream {
-    constructor(defaultSize, littleEndian) {
-        super({ defaultSize, littleEndian });
+    constructor(defaultSize, littleEndian, encoding = defaultDICOMEncoding) {
+        super({ defaultSize, littleEndian, encoding });
         this.size = 0;
     }
 }
