@@ -249,30 +249,43 @@ class ValueRepresentation {
         }
     }
 
-    write(stream, type) {
-        var args = Array.from(arguments);
-        if (args[2] === null || args[2] === "" || args[2] === undefined) {
+    /**
+     * Write array of values into stream with `ValueMultiplicity Delimiter`.
+     *
+     * ### Cases & Expected Behavior:
+     *
+     *  - If `value` is an `Array`:
+     *      - with `valueArgs = ["1.2.840.10008.1.2.1"]` => `singularArgs = Array(1) [1.2.840.10008.1.2.1]`
+     *      - with `valueArgs = ["1.2.840.10008.1.2.1"]` and `multiplicity = true` => `Array(1) [1.2.840.10008.1.2.1]`, `buffer => "1.2.840.10008.1.2.1"`
+     *      - with `valueArgs = ["5", "10"]` and `multiplicity = true` => `Array(1) ["5", "10"]`, `buffer => "5\\10"`
+     *  - Else:
+     *      - **write value**
+     *
+     * @param {BufferStream} stream
+     * @param {string} type
+     * @returns {*[]}
+     */
+    write(stream, type, value) {
+        if (value === null || value === "" || value === undefined) {
             return [stream.writeAsciiString("")];
         } else {
-            var written = [],
-                valueArgs = args.slice(2),
-                func = stream["write" + type];
-            if (Array.isArray(valueArgs[0])) {
-                if (valueArgs[0].length < 1) {
+            let written = [];
+            const func = stream["write" + type];
+            if (Array.isArray(value)) {
+                if (value.length < 1) {
                     written.push(0);
                 } else {
-                    var self = this;
-                    valueArgs[0].forEach(function (v, k) {
+                    const self = this;
+                    value.forEach(function (v, k) {
                         if (self.allowMultiple() && k > 0) {
                             stream.writeUint8(VM_DELIMITER);
                         }
-                        var singularArgs = [v].concat(valueArgs.slice(1));
-                        var byteCount = func.apply(stream, singularArgs);
+                        const byteCount = func.apply(stream, [v]);
                         written.push(byteCount);
                     });
                 }
             } else {
-                written.push(func.apply(stream, valueArgs));
+                written.push(func.apply(stream, [value]));
             }
             return written;
         }
