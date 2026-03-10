@@ -23,7 +23,7 @@ export class BufferStream {
     constructor(options = null) {
         this.isLittleEndian = options?.littleEndian || this.isLittleEndian;
         this.view.defaultSize = options?.defaultSize ?? this.view.defaultSize;
-        this.clearBuffers = options.clearBuffers || false;
+        this.clearBuffers = options?.clearBuffers || false;
     }
 
     /**
