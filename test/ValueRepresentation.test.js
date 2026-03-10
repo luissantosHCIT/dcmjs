@@ -1,0 +1,182 @@
+import fs from "fs";
+import crypto from "crypto";
+import dcmjs from "../src/index.js";
+import { deepEqual } from "../src/utilities/deepEqual";
+import {
+    DEFLATED_EXPLICIT_LITTLE_ENDIAN,
+    UNDEFINED_LENGTH,
+    TagHex
+} from "../src/constants/dicom.js";
+
+import { getTestDataset } from "./testUtils";
+import { DicomMetaDictionary } from "../src/DicomMetaDictionary";
+import { ValueRepresentation } from "../src/ValueRepresentation";
+import { BufferStream, WriteBufferStream } from "../src/BufferStream";
+
+const { DicomDict, DicomMessage } = dcmjs.data;
+
+describe("vr basic behavior", () => {
+    describe("storeRaw option", () => {
+        const dataset = {
+            "00080008": {
+                vr: "CS",
+                Value: ["DERIVED"]
+            },
+            "00082112": {
+                vr: "SQ",
+                Value: [
+                    {
+                        "00081150": {
+                            vr: "UI",
+                            Value: ["1.2.840.10008.5.1.4.1.1.7"]
+                        }
+                    }
+                ]
+            },
+            "00180050": {
+                vr: "DS",
+                Value: [1]
+            },
+            "00181708": {
+                vr: "IS",
+                Value: [426]
+            },
+            "00189328": {
+                vr: "FD",
+                Value: [30.98]
+            },
+            "0020000D": {
+                vr: "UI",
+                Value: [
+                    "1.3.6.1.4.1.5962.99.1.2280943358.716200484.1363785608958.3.0"
+                ]
+            },
+            "00400254": {
+                vr: "LO",
+                Value: ["DUCTO/GALACTOGRAM 1 DUCT LT"]
+            },
+            "7FE00010": {
+                vr: "OW",
+                Value: [new Uint8Array([0x00, 0x00]).buffer]
+            }
+        };
+
+        const rawDataset = {
+            "00080008": {
+                vr: "CS",
+                Value: ["DERIVED"],
+                _rawValue: ["DERIVED"]
+            },
+            "00082112": {
+                vr: "SQ",
+                Value: [
+                    {
+                        "00081150": {
+                            vr: "UI",
+                            Value: ["1.2.840.10008.5.1.4.1.1.7"],
+                            _rawValue: ["1.2.840.10008.5.1.4.1.1.7"]
+                        }
+                    }
+                ],
+                _rawValue: [
+                    {
+                        "00081150": {
+                            vr: "UI",
+                            Value: ["1.2.840.10008.5.1.4.1.1.7"],
+                            _rawValue: ["1.2.840.10008.5.1.4.1.1.7"]
+                        }
+                    }
+                ]
+            },
+            "00180050": {
+                vr: "DS",
+                Value: [1],
+                _rawValue: [1]
+            },
+            "00181708": {
+                vr: "IS",
+                Value: [426],
+                _rawValue: [426]
+            },
+            "00189328": {
+                vr: "FD",
+                Value: [30.98],
+                _rawValue: [30.98]
+            },
+            "0020000D": {
+                vr: "UI",
+                Value: [
+                    "1.3.6.1.4.1.5962.99.1.2280943358.716200484.1363785608958.3.0"
+                ],
+                _rawValue: [
+                    "1.3.6.1.4.1.5962.99.1.2280943358.716200484.1363785608958.3.0"
+                ]
+            },
+            "00400254": {
+                vr: "LO",
+                Value: ["DUCTO/GALACTOGRAM 1 DUCT LT"],
+                _rawValue: ["DUCTO/GALACTOGRAM 1 DUCT LT"]
+            },
+            "7FE00010": {
+                vr: "OW",
+                Value: [new Uint8Array([0x00, 0x00]).buffer],
+                _rawValue: [new Uint8Array([0x00, 0x00]).buffer]
+            }
+        };
+
+        const VRs = [
+            {
+                vr: "US",
+                funcType: "Uint16",
+                readFunc: "readUint16",
+                writeFunc: "writeUint16",
+                expectedLength: 2,
+                testValue: 5
+            }
+        ];
+
+        test("Write DicomDict without _rawValue", async () => {
+            const dicomDict = new DicomDict({});
+            dicomDict.dict = dataset;
+
+            dicomDict.write();
+            // No errors here = pass.
+        });
+
+        test("Checking write method in VR", async () => {
+            const fileStream = new WriteBufferStream(4096, true);
+            let vr = ValueRepresentation.createByTypeString("DS");
+
+            const result = vr.write(fileStream);
+            expect(result).toEqual([0]);
+        });
+
+        test("Checking write method in VR requesting specific write type", async () => {
+            VRs.forEach(vrItem => {
+                const fileStream = new BufferStream();
+                let vr = ValueRepresentation.createByTypeString(vrItem.vr);
+
+                const lengths = vr.write(fileStream, vrItem.funcType, vrItem.testValue);
+                expect(lengths).toEqual([vrItem.expectedLength]);
+
+
+                fileStream.reset();
+                const result = fileStream[vrItem.readFunc]();
+                expect(result).toEqual(vrItem.testValue);
+            });
+        });
+
+        test("Checking writeBytes method in VR requesting specific write type", async () => {
+            VRs.forEach(vrItem => {
+                const fileStream = new BufferStream();
+                let vr = ValueRepresentation.createByTypeString(vrItem.vr);
+
+                vr.writeBytes(fileStream, vrItem.testValue);
+                fileStream.reset();
+                const result = fileStream[vrItem.readFunc]();
+
+                expect(result).toEqual(vrItem.testValue);
+            });
+        });
+    });
+});
