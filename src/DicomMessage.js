@@ -83,7 +83,7 @@ export class DicomMessage {
                         readInfo.values,
                         ignoreErrors
                     );
-                    bufferStream.setDecoder(encoding, ignoreErrors);
+                    bufferStream.setEncoding(encoding, ignoreErrors);
 
                     // Are we resetting the encoding here because the stream will decode the input buffer from source
                     // encoding to UTF-8?
@@ -136,10 +136,11 @@ export class DicomMessage {
             forceStoreRaw: false
         }
     ) {
-        let stream = new ReadBufferStream(buffer, null, {
-                noCopy: options.noCopy
-            }),
-            useSyntax = EXPLICIT_LITTLE_ENDIAN;
+        let stream = new ReadBufferStream(buffer, false, {
+            noCopy: options.noCopy
+        });
+        const useSyntax = EXPLICIT_LITTLE_ENDIAN;
+
         stream.reset();
         stream.increment(128);
         if (stream.readAsciiString(4) !== "DICM") {
