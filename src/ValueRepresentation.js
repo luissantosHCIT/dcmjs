@@ -585,7 +585,7 @@ class BinaryRepresentation extends ValueRepresentation {
             return super.writeBytes(
                 stream,
                 binaryData,
-                [binaryStream.size],
+                binaryStream.size,
                 writeOptions
             );
         }
@@ -1278,7 +1278,7 @@ class SequenceOfItems extends ValueRepresentation {
         super.write(stream, "Uint32", 0x00000000);
         written += 8;
 
-        return super.writeBytes(stream, value, [written], writeOptions);
+        return super.writeBytes(stream, value, written, writeOptions);
     }
 }
 
