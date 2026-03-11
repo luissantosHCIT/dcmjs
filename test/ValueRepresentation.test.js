@@ -190,12 +190,13 @@ describe("vr basic behavior", () => {
             VRs.forEach(vrItem => {
                 const fileStream = new BufferStream();
                 let vr = ValueRepresentation.createByTypeString(vrItem.vr);
+                vr._allowMultiple = Array.isArray(vrItem.testValue);
 
-                vr.writeBytes(fileStream, vrItem.testValue);
+                const written = vr.writeBytes(fileStream, vrItem.testValue);
                 fileStream.reset();
-                const result = fileStream[vrItem.readFunc]();
+                const result = fileStream[vrItem.readFunc](written);
 
-                expect(result).toEqual(vrItem.testValue);
+                expect(result).toEqual(vrItem.expectedValue);
             });
         });
     });
