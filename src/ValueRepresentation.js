@@ -69,6 +69,74 @@ var binaryVRs = ["FL", "FD", "SL", "SS", "UL", "US", "AT"],
     length32VRs = ["OB", "OW", "OF", "SQ", "UC", "UR", "UT", "UN", "OD"],
     singleVRs = ["SQ", "OF", "OW", "OB", "UN"];
 
+/**
+ * ## [6.2 Value Representation (VR)](https://dicom.nema.org/medical/dicom/current/output/html/part05.html#sect_6.2)
+ * The Value Representation of a Data Element describes the data type and format of that Data Element's Value(s).
+ * [PS3.6](https://dicom.nema.org/medical/dicom/current/output/html/part06.html#PS3.6) lists the VR of each Data Element by
+ * Data Element Tag.
+ *
+ * **Values with VRs constructed of character strings, except in the case of the VR UI, shall be padded with SPACE
+ * characters (20H, in the Default Character Repertoire) when necessary to achieve even length. Values with a VR
+ * of UI shall be padded with a single trailing NULL (00H) character when necessary to achieve even length.
+ * Values with a VR of OB shall be padded with a single trailing NULL byte value (00H) when necessary to achieve
+ * even length.**
+ *
+ * All new VRs defined in future versions of DICOM shall be of the same Data Element Structure as defined in
+ * [Section 7.1.2](https://dicom.nema.org/medical/dicom/current/output/html/part05.html#sect_7.1.2)
+ * (i.e., following the format for VRs such as OB, OW, SQ and UN).
+ *
+ * ### Note
+ *
+ * 1. *Since all new VRs will be defined as specified in
+ * [Section 7.1.2](https://dicom.nema.org/medical/dicom/current/output/html/part05.html#sect_7.1.2), an
+ * implementation may choose to ignore VRs not recognized by applying the rules stated in
+ * [Section 7.1.2](https://dicom.nema.org/medical/dicom/current/output/html/part05.html#sect_7.1.2).*
+ *
+ * 2. *When converting a Data Set from an Explicit VR Transfer Syntax to a different Transfer Syntax, an
+ * implementation may copy Data Elements with unrecognized VRs in the following manner:*
+ *      -   *If the endianness of the Transfer Syntaxes is the same, the Value of the Data Element may be copied
+ *      unchanged and if the target Transfer Syntax is Explicit VR, the VR bytes copied unchanged. In practice
+ *      this only applies to Little Endian Transfer Syntaxes, since there was only one Big Endian Transfer Syntax
+ *      defined.*
+ *      -   *If the source Transfer Syntax is Little Endian and the target Transfer Syntax is the (retired)
+ *      Big Endian Explicit VR Transfer Syntax, then the Value of the Data Element may be copied unchanged and
+ *      the VR changed to UN, since being unrecognized, whether or not byte swapping is required is unknown. If the
+ *      VR were copied unchanged, the byte order of the Value might or might not be incorrect.*
+ *      -   *If the source Transfer Syntax is the (retired) Big Endian Explicit VR Transfer Syntax, then the
+ *      Data Element cannot be copied, because whether or not byte swapping is required is unknown, and there is
+ *      no equivalent of the UN VR to use when the Value is big endian rather than little endian.*
+ *
+ * *The issues of whether or not the Data Element may be copied, and what VR to use if copying, do not arise when
+ * converting a Data Set from Implicit VR Little Endian Transfer Syntax, since the VR would not be present to be
+ * unrecognized, and if the Data Element VR is not known from a data dictionary, then UN would be used.*
+ *
+ * An individual Value, including padding, shall not exceed the Length of Value, except in the case of the last
+ * Value of a multi-valued field as specified in [Section 6.4](https://dicom.nema.org/medical/dicom/current/output/html/part05.html#sect_6.4).
+ *
+ *
+ * ### Note
+ * The lengths of Value Representations for which the Character Repertoire can be extended or replaced are
+ * expressly specified in characters rather than bytes in
+ * [Table 6.2-1](https://dicom.nema.org/medical/dicom/current/output/html/part05.html#table_6.2-1). This is because
+ * the mapping from a character to the number of bytes used for that character's encoding may be dependent on the
+ * character set used.
+ *
+ * Escape Sequences used for Code Extension shall not be included in the count of characters.
+ *
+ * ### Note
+ * 1. *For Data Elements that were present in ACR-NEMA 1.0 and 2.0 and that have been retired, the specifications
+ * of Value Representation and Value Multiplicity provided are recommendations for the purpose of interpreting
+ * their Values in objects created in accordance with earlier versions of this Standard. These recommendations are
+ * suggested as most appropriate for a particular Data Element; however, there is no guarantee that historical
+ * objects will not violate some requirements or specified VR and/or VM.*
+ *
+ * 2. *The length of the Value of UC, UR and UT VRs is limited only by the size of the maximum unsigned integer
+ * representable in a 32 bit VL field minus two, since FFFFFFFFH is reserved and lengths are required to be even.*
+ *
+ * 3. *In previous editions of the Standard (see PS3.5-2015a), the TAB character was not listed as permitted for
+ * the ST, LT and UT VRs. It has been added for the convenience of formatting and the encoding of XML text.*
+ *
+ */
 class ValueRepresentation {
     constructor(type) {
         this.type = type;
@@ -293,6 +361,21 @@ class ValueRepresentation {
         }
     }
 
+    /**
+     * Method for validating value size and writing padding bytes as needed.
+     *
+     * **Values with VRs constructed of character strings, except in the case of the VR UI, shall be padded with SPACE
+     * characters (20H, in the Default Character Repertoire) when necessary to achieve even length. Values with a VR
+     * of UI shall be padded with a single trailing NULL (00H) character when necessary to achieve even length.
+     * Values with a VR of OB shall be padded with a single trailing NULL byte value (00H) when necessary to achieve
+     * even length.**
+     *
+     * @param {BufferStream} stream
+     * @param {any} value
+     * @param {number} lengths
+     * @param {Object} writeOptions
+     * @returns {number}
+     */
     writeBytes(
         stream,
         value,
@@ -300,6 +383,7 @@ class ValueRepresentation {
         writeOptions = { allowInvalidVRLength: false }
     ) {
         const { allowInvalidVRLength } = writeOptions;
+        // Probably should be false by default and then truly confirm sizes.
         var valid = true,
             valarr = Array.isArray(value) ? value : [value],
             total = 0;
