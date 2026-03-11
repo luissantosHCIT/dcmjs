@@ -17,6 +17,8 @@ const { DicomDict, DicomMessage } = dcmjs.data;
 
 describe("vr basic behavior", () => {
     describe("storeRaw option", () => {
+        const binaryVR = new Set(["OB"]);
+        const binaryBuffer = new Uint8Array([5,6,7,54,3,255,6,4,63,23]);
         const dataset = {
             "00080008": {
                 vr: "CS",
@@ -170,6 +172,15 @@ describe("vr basic behavior", () => {
                 expectedRawValue: -5,
                 expectedValue: -5
             },
+            {
+                vr: "OB",
+                funcType: "Uint8Repeat",
+                readFunc: "readUint8Array",
+                expectedLength: 10,
+                testValue: [binaryBuffer.buffer],
+                expectedRawValue: binaryBuffer,
+                expectedValue: binaryBuffer
+            },
         ];
 
         test("Write DicomDict without _rawValue", async () => {
@@ -192,15 +203,20 @@ describe("vr basic behavior", () => {
             VRs.forEach(vrItem => {
                 const fileStream = new BufferStream();
                 let vr = ValueRepresentation.createByTypeString(vrItem.vr);
-                vr._allowMultiple = Array.isArray(vrItem.testValue);
+                vr._allowMultiple = Array.isArray(vrItem.testValue) && !binaryVR.has(vrItem.vr);
 
-                const lengths = vr.write(fileStream, vrItem.funcType, vrItem.testValue);
-                expect(lengths).toEqual(vrItem.expectedLength);
+                let written = -1;
+                if (binaryVR.has(vrItem.vr)) {
+                    written = vr.writeBytes(fileStream, vrItem.testValue);
+                } else {
+                    written = vr.write(fileStream, vrItem.funcType, vrItem.testValue);
+                }
+                expect(written).toEqual(vrItem.expectedLength);
 
 
                 fileStream.reset();
                 // Checking at the stream level because it returns a more raw result.
-                const result = fileStream[vrItem.readFunc](lengths);
+                const result = fileStream[vrItem.readFunc](written);
                 expect(result).toEqual(vrItem.expectedRawValue);
             });
         });
@@ -209,7 +225,7 @@ describe("vr basic behavior", () => {
             VRs.forEach(vrItem => {
                 const fileStream = new BufferStream();
                 let vr = ValueRepresentation.createByTypeString(vrItem.vr);
-                vr._allowMultiple = Array.isArray(vrItem.testValue);
+                vr._allowMultiple = Array.isArray(vrItem.testValue) && !binaryVR.has(vrItem.vr);
 
                 const written = vr.writeBytes(fileStream, vrItem.testValue);
                 fileStream.reset();
