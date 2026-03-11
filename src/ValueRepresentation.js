@@ -291,7 +291,7 @@ class ValueRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readAsciiString(length);
+        return super.readPaddedAsciiString(stream, length);
     }
 
     readPaddedAsciiString(stream, length) {
@@ -465,7 +465,7 @@ class AsciiStringRepresentation extends ValueRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readAsciiString(length);
+        return super.readPaddedAsciiString(stream, length);
     }
 
     writeBytes(stream, value, writeOptions) {
@@ -481,7 +481,7 @@ class EncodedStringRepresentation extends ValueRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readEncodedString(length);
+        return super.readPaddedEncodedString(stream, length);
     }
 
     writeBytes(stream, value, writeOptions) {
@@ -734,7 +734,7 @@ class ApplicationEntity extends AsciiStringRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readAsciiString(length);
+        return super.readPaddedAsciiString(stream, length);
     }
 
     applyFormatting(value) {
@@ -751,7 +751,7 @@ class CodeString extends AsciiStringRepresentation {
     readBytes(stream, length) {
         const BACKSLASH = String.fromCharCode(VM_DELIMITER);
         return this.dropPadByte(
-            stream.readAsciiString(length).split(BACKSLASH)
+            super.readPaddedAsciiString(stream, length).split(BACKSLASH)
         );
     }
 
@@ -821,7 +821,7 @@ class DateValue extends AsciiStringRepresentation {
 class NumericStringRepresentation extends AsciiStringRepresentation {
     readBytes(stream, length) {
         const BACKSLASH = String.fromCharCode(VM_DELIMITER);
-        const numStr = stream.readAsciiString(length);
+        const numStr = super.readPaddedAsciiString(stream, length);
 
         return this.dropPadByte(numStr.split(BACKSLASH));
     }
@@ -1001,7 +1001,7 @@ class LongString extends EncodedStringRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readEncodedString(length);
+        return super.readPaddedEncodedString(stream, length);
     }
 
     applyFormatting(value) {
@@ -1016,7 +1016,7 @@ class LongText extends EncodedStringRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readEncodedString(length);
+        return super.readPaddedEncodedString(stream, length);
     }
 
     applyFormatting(value) {
@@ -1122,7 +1122,7 @@ class ShortString extends EncodedStringRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readEncodedString(length);
+        return super.readPaddedEncodedString(stream, length);
     }
 
     applyFormatting(value) {
@@ -1317,7 +1317,7 @@ class ShortText extends EncodedStringRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readEncodedString(length);
+        return super.readPaddedEncodedString(stream, length);
     }
 
     applyFormatting(value) {
@@ -1333,7 +1333,7 @@ class TimeValue extends AsciiStringRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readAsciiString(length);
+        return super.readPaddedAsciiString(stream, length);
     }
 
     applyFormatting(value) {
@@ -1360,7 +1360,7 @@ class UnlimitedCharacters extends EncodedStringRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readEncodedString(length);
+        return super.readPaddedEncodedString(stream, length);
     }
 
     applyFormatting(value) {
@@ -1375,7 +1375,7 @@ class UnlimitedText extends EncodedStringRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readEncodedString(length);
+        return super.readPaddedEncodedString(stream, length);
     }
 
     applyFormatting(value) {
@@ -1473,7 +1473,7 @@ class UniversalResource extends AsciiStringRepresentation {
     }
 
     readBytes(stream, length) {
-        return stream.readAsciiString(length);
+        return super.readPaddedAsciiString(stream, length);
     }
 }
 
