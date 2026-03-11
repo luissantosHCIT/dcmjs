@@ -154,12 +154,21 @@ describe("vr basic behavior", () => {
             },
             {
                 vr: "LO",
-                funcType: "AsciiString",
+                funcType: "UTF8String",
                 readFunc: "readEncodedString",
-                expectedLength: 12,
+                expectedLength: 14,
                 testValue: "I ♥ my wife!",
-                expectedRawValue: "I e my wife!",
+                expectedRawValue: "I ♥ my wife!",
                 expectedValue: "I ♥ my wife!"
+            },
+            {
+                vr: "SL",
+                funcType: "Int32",
+                readFunc: "readInt32",
+                expectedLength: 4,
+                testValue: -5,
+                expectedRawValue: -5,
+                expectedValue: -5
             },
         ];
 
