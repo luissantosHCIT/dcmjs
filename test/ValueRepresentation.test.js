@@ -129,28 +129,28 @@ describe("vr basic behavior", () => {
                 vr: "US",
                 funcType: "Uint16",
                 readFunc: "readUint16",
-                writeFunc: "writeUint16",
                 expectedLength: 2,
                 testValue: 5,
-                expectedValue: 5
+                expectedValue: 5,
+                expectedRawValue: 5
             },
             {
                 vr: "UI",
                 funcType: "AsciiString",
                 readFunc: "readAsciiString",
-                writeFunc: "writeAsciiString",
                 expectedLength: 19,
                 testValue: ["1.2.840.10008.1.2.1"],
+                expectedRawValue: "1.2.840.10008.1.2.1",
                 expectedValue: "1.2.840.10008.1.2.1"
             },
             {
                 vr: "CS",
                 funcType: "AsciiString",
                 readFunc: "readAsciiString",
-                writeFunc: "writeAsciiString",
                 expectedLength: 3,
                 testValue: ["5", "5"],
-                expectedValue: "5\\5"
+                expectedRawValue: "5\\5",
+                expectedValue: ["5", "5"]
             },
         ];
 
@@ -170,19 +170,20 @@ describe("vr basic behavior", () => {
             expect(result).toEqual([0]);
         });
 
-        test("Checking write method in VR requesting specific write type", async () => {
+        test("Checking write method in VR requesting specific write type and confirmed with raw value", async () => {
             VRs.forEach(vrItem => {
                 const fileStream = new BufferStream();
                 let vr = ValueRepresentation.createByTypeString(vrItem.vr);
                 vr._allowMultiple = Array.isArray(vrItem.testValue);
 
                 const lengths = vr.write(fileStream, vrItem.funcType, vrItem.testValue);
-                expect(lengths).toEqual([vrItem.expectedLength]);
+                expect(lengths).toEqual(vrItem.expectedLength);
 
 
                 fileStream.reset();
+                // Checking at the stream level because it returns a more raw result.
                 const result = fileStream[vrItem.readFunc](lengths);
-                expect(result).toEqual(vrItem.expectedValue);
+                expect(result).toEqual(vrItem.expectedRawValue);
             });
         });
 
@@ -194,7 +195,7 @@ describe("vr basic behavior", () => {
 
                 const written = vr.writeBytes(fileStream, vrItem.testValue);
                 fileStream.reset();
-                const result = fileStream[vrItem.readFunc](written);
+                const result = vr.readBytes(fileStream, written);
 
                 expect(result).toEqual(vrItem.expectedValue);
             });
