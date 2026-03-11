@@ -152,6 +152,15 @@ describe("vr basic behavior", () => {
                 expectedRawValue: "5\\5",
                 expectedValue: ["5", "5"]
             },
+            {
+                vr: "LO",
+                funcType: "AsciiString",
+                readFunc: "readEncodedString",
+                expectedLength: 12,
+                testValue: "I ♥ my wife!",
+                expectedRawValue: "I e my wife!",
+                expectedValue: "I ♥ my wife!"
+            },
         ];
 
         test("Write DicomDict without _rawValue", async () => {
@@ -195,7 +204,7 @@ describe("vr basic behavior", () => {
 
                 const written = vr.writeBytes(fileStream, vrItem.testValue);
                 fileStream.reset();
-                const result = vr.readBytes(fileStream, written);
+                let result = vr.readBytes(fileStream, written);
 
                 expect(result).toEqual(vrItem.expectedValue);
             });
