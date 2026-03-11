@@ -1,10 +1,6 @@
 import { ReadBufferStream, WriteBufferStream } from "./BufferStream.js";
-import {
-    PADDING_NULL,
-    PADDING_SPACE,
-    PN_COMPONENT_DELIMITER,
-    VM_DELIMITER
-} from "./constants/dicom.js";
+import { PN_COMPONENT_DELIMITER, VM_DELIMITER } from "./constants/dicom.js";
+import { defaultPadding, padBytes } from "./constants/padding";
 import { log, validationLog } from "./log.js";
 import dicomJson from "./utilities/dicomJson.js";
 
@@ -146,6 +142,7 @@ class ValueRepresentation {
             !this._isBinary && singleVRs.indexOf(this.type) == -1;
         this._isLength32 = length32VRs.indexOf(this.type) != -1;
         this._storeRaw = true;
+        this._padByte = ValueRepresentation.selectPadByte(type);
     }
 
     static setDicomMessageClass(dicomMessageClass) {
@@ -158,6 +155,10 @@ class ValueRepresentation {
 
     static setTagClass(tagClass) {
         Tag = tagClass;
+    }
+
+    static selectPadByte(type) {
+        return padBytes.has(type) ? padBytes.get(type) : defaultPadding;
     }
 
     isBinary() {
@@ -237,14 +238,14 @@ class ValueRepresentation {
      */
     dropPadByte(values) {
         const maxLength = this.maxLength ?? this.maxCharLength;
-        if (!Array.isArray(values) || !maxLength || !this.padByte) {
+        if (!Array.isArray(values) || !maxLength || !this._padByte) {
             return values;
         }
 
         // Only consider multiple-value data elements, as max length issues arise from a delimiter
         // making the total length odd and necessitating a padding byte.
         if (values.length > 1) {
-            const padChar = String.fromCharCode(this.padByte);
+            const padChar = String.fromCharCode(this._padByte);
             const lastIdx = values.length - 1;
             const lastValue = values[lastIdx];
 
@@ -295,7 +296,7 @@ class ValueRepresentation {
 
     readPaddedAsciiString(stream, length) {
         if (!length) return "";
-        if (stream.peekUint8(length - 1) !== this.padByte) {
+        if (stream.peekUint8(length - 1) !== this._padByte) {
             return stream.readAsciiString(length);
         } else {
             var val = stream.readAsciiString(length - 1);
@@ -309,7 +310,7 @@ class ValueRepresentation {
         const val = stream.readEncodedString(length);
         if (
             val.length &&
-            val[val.length - 1] !== String.fromCharCode(this.padByte)
+            val[val.length - 1] !== String.fromCharCode(this._padByte)
         ) {
             return val;
         } else {
@@ -383,22 +384,22 @@ class ValueRepresentation {
         writeOptions = { allowInvalidVRLength: false }
     ) {
         const { allowInvalidVRLength } = writeOptions;
+        const valarr = Array.isArray(value) ? value : [value];
         // Probably should be false by default and then truly confirm sizes.
-        var valid = true,
-            valarr = Array.isArray(value) ? value : [value],
+        let valid = true,
             total = 0;
 
-        for (var i = 0; i < valarr.length; i++) {
-            var checkValue = valarr[i],
-                checklen = lengths[i],
-                isString = false,
+        for (let i = 0; i < valarr.length; i++) {
+            const checkValue = valarr[i],
+                checklen = lengths[i];
+            let isString = false,
                 displaylen = checklen;
             if (checkValue === null || allowInvalidVRLength) {
                 valid = true;
             } else if (this.checkLength) {
                 valid = this.checkLength(checkValue);
             } else if (this.maxCharLength) {
-                var check = this.maxCharLength; //, checklen = checkValue.length;
+                const check = this.maxCharLength; //, checklen = checkValue.length;
                 valid = checkValue.length <= check;
                 displaylen = checkValue.length;
                 isString = true;
@@ -407,7 +408,7 @@ class ValueRepresentation {
             }
 
             if (!valid) {
-                var errmsg =
+                const errmsg =
                     "Value exceeds max length, vr: " +
                     this.type +
                     ", value: " +
@@ -424,9 +425,9 @@ class ValueRepresentation {
         }
 
         //check for odd
-        var written = total;
-        if (total & 1) {
-            stream.writeUint8(this.padByte);
+        let written = total;
+        if (total & 1 && this._padByte) {
+            stream.writeUint8(this._padByte);
             written++;
         }
         return written;
@@ -574,7 +575,7 @@ class BinaryRepresentation extends ValueRepresentation {
                     binaryStream.concat(fragStream);
 
                     if (addPaddingByte) {
-                        binaryStream.writeInt8(this.padByte);
+                        binaryStream.writeInt8(this._padByte);
                     }
                 }
             }
@@ -739,7 +740,6 @@ class ApplicationEntity extends AsciiStringRepresentation {
     constructor() {
         super("AE");
         this.maxLength = 16;
-        this.padByte = PADDING_SPACE;
     }
 
     readBytes(stream, length) {
@@ -755,7 +755,6 @@ class CodeString extends AsciiStringRepresentation {
     constructor() {
         super("CS");
         this.maxLength = 16;
-        this.padByte = PADDING_SPACE;
     }
 
     readBytes(stream, length) {
@@ -780,7 +779,6 @@ class AgeString extends AsciiStringRepresentation {
     constructor() {
         super("AS");
         this.maxLength = 4;
-        this.padByte = PADDING_SPACE;
         this.fixed = true;
         this.defaultValue = "";
     }
@@ -791,7 +789,6 @@ class AttributeTag extends ValueRepresentation {
         super("AT");
         this.maxLength = 4;
         this.valueLength = 4;
-        this.padByte = PADDING_NULL;
         this.fixed = true;
     }
 
@@ -814,7 +811,6 @@ class DateValue extends AsciiStringRepresentation {
         super("DA", value);
         this.maxLength = 8;
         this.rangeMatchingMaxLength = 18;
-        this.padByte = PADDING_SPACE;
         //this.fixed = true;
         this.defaultValue = "";
     }
@@ -844,7 +840,6 @@ class DecimalString extends NumericStringRepresentation {
     constructor() {
         super("DS");
         this.maxLength = 16;
-        this.padByte = PADDING_SPACE;
     }
 
     applyFormatting(value) {
@@ -910,7 +905,6 @@ class DateTime extends AsciiStringRepresentation {
         super("DT");
         this.maxLength = 26;
         this.rangeMatchingMaxLength = 54;
-        this.padByte = PADDING_SPACE;
     }
 
     checkLength(value) {
@@ -929,7 +923,6 @@ class FloatingPointSingle extends ValueRepresentation {
     constructor() {
         super("FL");
         this.maxLength = 4;
-        this.padByte = PADDING_NULL;
         this.fixed = true;
         this.defaultValue = 0.0;
     }
@@ -956,7 +949,6 @@ class FloatingPointDouble extends ValueRepresentation {
     constructor() {
         super("FD");
         this.maxLength = 8;
-        this.padByte = PADDING_NULL;
         this.fixed = true;
         this.defaultValue = 0.0;
     }
@@ -983,7 +975,6 @@ class IntegerString extends NumericStringRepresentation {
     constructor() {
         super("IS");
         this.maxLength = 12;
-        this.padByte = PADDING_SPACE;
     }
 
     applyFormatting(value) {
@@ -1016,7 +1007,6 @@ class LongString extends EncodedStringRepresentation {
     constructor() {
         super("LO");
         this.maxCharLength = 64;
-        this.padByte = PADDING_SPACE;
     }
 
     readBytes(stream, length) {
@@ -1032,7 +1022,6 @@ class LongText extends EncodedStringRepresentation {
     constructor() {
         super("LT");
         this.maxCharLength = 10240;
-        this.padByte = PADDING_SPACE;
     }
 
     readBytes(stream, length) {
@@ -1048,7 +1037,6 @@ class PersonName extends EncodedStringRepresentation {
     constructor() {
         super("PN");
         this.maxLength = null;
-        this.padByte = PADDING_SPACE;
     }
 
     static checkComponentLengths(components) {
@@ -1140,7 +1128,6 @@ class ShortString extends EncodedStringRepresentation {
     constructor() {
         super("SH");
         this.maxCharLength = 16;
-        this.padByte = PADDING_SPACE;
     }
 
     readBytes(stream, length) {
@@ -1156,7 +1143,6 @@ class SignedLong extends ValueRepresentation {
     constructor() {
         super("SL");
         this.maxLength = 4;
-        this.padByte = PADDING_NULL;
         this.fixed = true;
         this.defaultValue = 0;
     }
@@ -1179,7 +1165,6 @@ class SequenceOfItems extends ValueRepresentation {
     constructor() {
         super("SQ");
         this.maxLength = null;
-        this.padByte = PADDING_NULL;
         this.noMultiple = true;
         this._storeRaw = false;
     }
@@ -1316,7 +1301,6 @@ class SignedShort extends ValueRepresentation {
         super("SS");
         this.maxLength = 2;
         this.valueLength = 2;
-        this.padByte = PADDING_NULL;
         this.fixed = true;
         this.defaultValue = 0;
     }
@@ -1339,7 +1323,6 @@ class ShortText extends EncodedStringRepresentation {
     constructor() {
         super("ST");
         this.maxCharLength = 1024;
-        this.padByte = PADDING_SPACE;
     }
 
     readBytes(stream, length) {
@@ -1356,7 +1339,6 @@ class TimeValue extends AsciiStringRepresentation {
         super("TM");
         this.maxLength = 16;
         this.rangeMatchingMaxLength = 28;
-        this.padByte = PADDING_SPACE;
     }
 
     readBytes(stream, length) {
@@ -1384,7 +1366,6 @@ class UnlimitedCharacters extends EncodedStringRepresentation {
         super("UC");
         this.maxLength = null;
         this.multi = true;
-        this.padByte = PADDING_SPACE;
     }
 
     readBytes(stream, length) {
@@ -1400,7 +1381,6 @@ class UnlimitedText extends EncodedStringRepresentation {
     constructor() {
         super("UT");
         this.maxLength = null;
-        this.padByte = PADDING_SPACE;
     }
 
     readBytes(stream, length) {
@@ -1416,7 +1396,6 @@ class UnsignedShort extends ValueRepresentation {
     constructor() {
         super("US");
         this.maxLength = 2;
-        this.padByte = PADDING_NULL;
         this.fixed = true;
         this.defaultValue = 0;
     }
@@ -1439,7 +1418,6 @@ class UnsignedLong extends ValueRepresentation {
     constructor() {
         super("UL");
         this.maxLength = 4;
-        this.padByte = PADDING_NULL;
         this.fixed = true;
         this.defaultValue = 0;
     }
@@ -1462,7 +1440,6 @@ class UniqueIdentifier extends AsciiStringRepresentation {
     constructor() {
         super("UI");
         this.maxLength = 64;
-        this.padByte = PADDING_NULL;
     }
 
     readBytes(stream, length) {
@@ -1502,7 +1479,6 @@ class UniversalResource extends AsciiStringRepresentation {
     constructor() {
         super("UR");
         this.maxLength = null;
-        this.padByte = PADDING_SPACE;
     }
 
     readBytes(stream, length) {
@@ -1514,7 +1490,6 @@ class UnknownValue extends BinaryRepresentation {
     constructor() {
         super("UN");
         this.maxLength = null;
-        this.padByte = PADDING_NULL;
         this.noMultiple = true;
     }
 }
@@ -1523,7 +1498,6 @@ class ParsedUnknownValue extends BinaryRepresentation {
     constructor(vr) {
         super(vr);
         this.maxLength = null;
-        this.padByte = 0;
         this.noMultiple = true;
         this._isBinary = true;
         this._allowMultiple = false;
@@ -1563,7 +1537,6 @@ class OtherWordString extends BinaryRepresentation {
     constructor() {
         super("OW");
         this.maxLength = null;
-        this.padByte = PADDING_NULL;
         this.noMultiple = true;
     }
 }
@@ -1572,7 +1545,6 @@ class OtherByteString extends BinaryRepresentation {
     constructor() {
         super("OB");
         this.maxLength = null;
-        this.padByte = PADDING_NULL;
         this.noMultiple = true;
     }
 }
@@ -1581,7 +1553,6 @@ class OtherDoubleString extends BinaryRepresentation {
     constructor() {
         super("OD");
         this.maxLength = null;
-        this.padByte = PADDING_NULL;
         this.noMultiple = true;
     }
 }
@@ -1590,7 +1561,6 @@ class OtherFloatString extends BinaryRepresentation {
     constructor() {
         super("OF");
         this.maxLength = null;
-        this.padByte = PADDING_NULL;
         this.noMultiple = true;
     }
 }
