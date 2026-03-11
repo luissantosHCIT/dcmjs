@@ -332,31 +332,30 @@ class ValueRepresentation {
      *
      * @param {BufferStream} stream
      * @param {string} type
+     * @param {any | any[]} value
      * @returns {*[]}
      */
     write(stream, type, value) {
         if (value === null || value === "" || value === undefined) {
             return [stream.writeAsciiString("")];
         } else {
-            let written = [];
+            let written = 0;
             const func = stream["write" + type];
             if (Array.isArray(value)) {
                 if (value.length < 1) {
                     written.push(0);
                 } else {
                     const self = this;
-                    let byteCount = 0;
                     value.forEach(function (v, k) {
                         if (self.allowMultiple() && k > 0) {
                             stream.writeUint8(VM_DELIMITER);
-                            byteCount++;
+                            written++;
                         }
-                        byteCount += func.apply(stream, [v]);
+                        written += func.apply(stream, [v]);
                     });
-                    written.push(byteCount);
                 }
             } else {
-                written.push(func.apply(stream, [value]));
+                written += func.apply(stream, [value]);
             }
             return written;
         }
@@ -373,60 +372,52 @@ class ValueRepresentation {
      *
      * @param {BufferStream} stream
      * @param {any} value
-     * @param {number} lengths
+     * @param {number} length
      * @param {Object} writeOptions
      * @returns {number}
      */
     writeBytes(
         stream,
         value,
-        lengths,
+        length,
         writeOptions = { allowInvalidVRLength: false }
     ) {
         const { allowInvalidVRLength } = writeOptions;
-        const valarr = Array.isArray(value) ? value : [value];
         // Probably should be false by default and then truly confirm sizes.
         let valid = true,
             total = 0;
 
-        for (let i = 0; i < valarr.length; i++) {
-            const checkValue = valarr[i],
-                checklen = lengths[i];
-            let isString = false,
-                displaylen = checklen;
-            if (checkValue === null || allowInvalidVRLength) {
-                valid = true;
-            } else if (this.checkLength) {
-                valid = this.checkLength(checkValue);
-            } else if (this.maxCharLength) {
-                const check = this.maxCharLength; //, checklen = checkValue.length;
-                valid = checkValue.length <= check;
-                displaylen = checkValue.length;
-                isString = true;
-            } else if (this.maxLength) {
-                valid = checklen <= this.maxLength;
-            }
+        let isString = false,
+            displaylen = length;
+        if (value === null || allowInvalidVRLength) {
+            valid = true;
+        } else if (this.checkLength) {
+            valid = this.checkLength(value);
+        } else if (this.maxCharLength) {
+            const check = this.maxCharLength; //, checklen = checkValue.length;
+            valid = checkValue.length <= check;
+            displaylen = checkValue.length;
+            isString = true;
+        } else if (this.maxLength) {
+            valid = displaylen <= this.maxLength;
+        }
 
-            if (!valid) {
-                const errmsg =
-                    "Value exceeds max length, vr: " +
-                    this.type +
-                    ", value: " +
-                    checkValue +
-                    ", length: " +
-                    displaylen;
-                if (isString) log.info(errmsg);
-                else throw new Error(errmsg);
-            }
-            total += checklen;
+        if (!valid) {
+            const errmsg =
+                "Value exceeds max length, vr: " +
+                this.type +
+                ", value: " +
+                value +
+                ", length: " +
+                displaylen;
+            if (isString) log.info(errmsg);
+            else throw new Error(errmsg);
         }
-        if (this.allowMultiple()) {
-            total += valarr.length ? valarr.length - 1 : 0;
-        }
+        total += displaylen;
 
         //check for odd
         let written = total;
-        if (total & 1 && this._padByte) {
+        if (total & 1 && this._padByte !== null) {
             stream.writeUint8(this._padByte);
             written++;
         }
