@@ -336,15 +336,14 @@ class ValueRepresentation {
      * @returns {*[]}
      */
     write(stream, type, value) {
+        const func = stream["write" + type];
+        let written = 0;
+
         if (value === null || value === "" || value === undefined) {
-            return [stream.writeAsciiString("")];
+            return stream.writeAsciiString("");
         } else {
-            let written = 0;
-            const func = stream["write" + type];
             if (Array.isArray(value)) {
-                if (value.length < 1) {
-                    written.push(0);
-                } else {
+                if (value.length >= 1) {
                     const self = this;
                     value.forEach(function (v, k) {
                         if (self.allowMultiple() && k > 0) {
