@@ -296,7 +296,7 @@ class ValueRepresentation {
 
     readPaddedAsciiString(stream, length) {
         if (!length) return "";
-        if (stream.peekUint8(length - 1) !== this._padByte) {
+        if (stream.peekUint8(length - 1) !== this._padByte || this._storeRaw) {
             return stream.readAsciiString(length);
         } else {
             var val = stream.readAsciiString(length - 1);
@@ -309,8 +309,9 @@ class ValueRepresentation {
         if (!length) return "";
         const val = stream.readEncodedString(length);
         if (
-            val.length &&
-            val[val.length - 1] !== String.fromCharCode(this._padByte)
+            (val.length &&
+                val[val.length - 1] !== String.fromCharCode(this._padByte)) ||
+            this._storeRaw
         ) {
             return val;
         } else {
