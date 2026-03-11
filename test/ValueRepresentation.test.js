@@ -131,8 +131,27 @@ describe("vr basic behavior", () => {
                 readFunc: "readUint16",
                 writeFunc: "writeUint16",
                 expectedLength: 2,
-                testValue: 5
-            }
+                testValue: 5,
+                expectedValue: 5
+            },
+            {
+                vr: "UI",
+                funcType: "AsciiString",
+                readFunc: "readAsciiString",
+                writeFunc: "writeAsciiString",
+                expectedLength: 19,
+                testValue: ["1.2.840.10008.1.2.1"],
+                expectedValue: "1.2.840.10008.1.2.1"
+            },
+            {
+                vr: "CS",
+                funcType: "AsciiString",
+                readFunc: "readAsciiString",
+                writeFunc: "writeAsciiString",
+                expectedLength: 3,
+                testValue: ["5", "5"],
+                expectedValue: "5\\5"
+            },
         ];
 
         test("Write DicomDict without _rawValue", async () => {
@@ -155,14 +174,15 @@ describe("vr basic behavior", () => {
             VRs.forEach(vrItem => {
                 const fileStream = new BufferStream();
                 let vr = ValueRepresentation.createByTypeString(vrItem.vr);
+                vr._allowMultiple = Array.isArray(vrItem.testValue);
 
                 const lengths = vr.write(fileStream, vrItem.funcType, vrItem.testValue);
                 expect(lengths).toEqual([vrItem.expectedLength]);
 
 
                 fileStream.reset();
-                const result = fileStream[vrItem.readFunc]();
-                expect(result).toEqual(vrItem.testValue);
+                const result = fileStream[vrItem.readFunc](lengths);
+                expect(result).toEqual(vrItem.expectedValue);
             });
         });
 
