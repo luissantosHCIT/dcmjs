@@ -581,6 +581,8 @@ class BinaryRepresentation extends ValueRepresentation {
             var binaryData = value[0];
             binaryStream = new ReadBufferStream(binaryData);
             stream.concat(binaryStream);
+            // Make sure we can pass validation of the binary blob since these can be unbounded.
+            this.maxLength = this.maxLength ?? binaryData.byteLength;
             return super.writeBytes(
                 stream,
                 binaryData,
