@@ -276,13 +276,15 @@ class ValueRepresentation {
                     written.push(0);
                 } else {
                     const self = this;
+                    let byteCount = 0;
                     value.forEach(function (v, k) {
                         if (self.allowMultiple() && k > 0) {
                             stream.writeUint8(VM_DELIMITER);
+                            byteCount++;
                         }
-                        const byteCount = func.apply(stream, [v]);
-                        written.push(byteCount);
+                        byteCount += func.apply(stream, [v]);
                     });
+                    written.push(byteCount);
                 }
             } else {
                 written.push(func.apply(stream, [value]));
