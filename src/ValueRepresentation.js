@@ -384,22 +384,17 @@ class ValueRepresentation {
     ) {
         const { allowInvalidVRLength } = writeOptions;
         // Probably should be false by default and then truly confirm sizes.
-        let valid = true,
+        let valid = value === null || allowInvalidVRLength,
             total = 0;
 
-        let isString = false,
-            displaylen = length;
-        if (value === null || allowInvalidVRLength) {
-            valid = true;
-        } else if (this.checkLength) {
+        let isString = false;
+        if (this.checkLength) {
             valid = this.checkLength(value);
         } else if (this.maxCharLength) {
-            const check = this.maxCharLength; //, checklen = checkValue.length;
-            valid = checkValue.length <= check;
-            displaylen = checkValue.length;
+            valid = length <= this.maxCharLength;
             isString = true;
         } else if (this.maxLength) {
-            valid = displaylen <= this.maxLength;
+            valid = length <= this.maxLength;
         }
 
         if (!valid) {
@@ -409,11 +404,11 @@ class ValueRepresentation {
                 ", value: " +
                 value +
                 ", length: " +
-                displaylen;
+                length;
             if (isString) log.info(errmsg);
             else throw new Error(errmsg);
         }
-        total += displaylen;
+        total += length;
 
         //check for odd
         let written = total;
