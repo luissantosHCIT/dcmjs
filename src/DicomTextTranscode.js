@@ -1,4 +1,3 @@
-import { DicomMetaDictionary } from "./DicomMetaDictionary";
 import { defaultEncoding } from "./constants/encodings";
 import { selectNativeEncoding } from "./utilities/selectEncoding";
 
@@ -6,7 +5,7 @@ import { selectNativeEncoding } from "./utilities/selectEncoding";
  * Facilitates the conversion of binary buffers from a DICOM encoding scheme to
  * a web supported string encoding scheme and vice versa.
  */
-export class DicomBufferCODEC {
+export class DicomTextTranscode {
     encoder = new TextEncoder(defaultEncoding);
     decoder = new TextDecoder(defaultEncoding);
 

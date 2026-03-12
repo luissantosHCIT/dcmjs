@@ -2,7 +2,7 @@ import pako from "pako";
 import SplitDataView from "./SplitDataView";
 import { toFloat } from "./utilities/toFloat";
 import { toInt } from "./utilities/toInt";
-import { DicomBufferCODEC } from "./BufferCODEC";
+import { DicomTextTranscode } from "./DicomTextTranscode";
 import { defaultDICOMEncoding } from "./constants/encodings";
 
 export class BufferStream {
@@ -20,7 +20,7 @@ export class BufferStream {
     /** A flag to set to indicate to clear buffers as they get consumed */
     clearBuffers = false;
 
-    codec = new DicomBufferCODEC();
+    codec = new DicomTextTranscode();
 
     constructor(options = null) {
         this.isLittleEndian = options?.littleEndian || this.isLittleEndian;
