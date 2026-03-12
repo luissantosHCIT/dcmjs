@@ -2,7 +2,7 @@ export const encodingMapping = new Map([
     ["", "iso-8859-1"],
     ["iso-ir-6", "iso-8859-1"],
     ["iso-ir-13", "shift-jis"],
-    ["iso-ir-100", "latin1"],
+    ["iso-ir-100", "iso-8859-1"],
     ["iso-ir-101", "iso-8859-2"],
     ["iso-ir-109", "iso-8859-3"],
     ["iso-ir-110", "iso-8859-4"],
@@ -15,7 +15,7 @@ export const encodingMapping = new Map([
     ["iso-2022-ir-6", "iso-8859-1"],
     ["iso-2022-ir-13", "shift-jis"],
     ["iso-2022-ir-87", "iso-2022-jp"],
-    ["iso-2022-ir-100", "latin1"],
+    ["iso-2022-ir-100", "iso-8859-1"],
     ["iso-2022-ir-101", "iso-8859-2"],
     ["iso-2022-ir-109", "iso-8859-3"],
     ["iso-2022-ir-110", "iso-8859-4"],
@@ -35,5 +35,5 @@ export const encodingMapping = new Map([
     ["gbk", "gbk"]
 ]);
 
-export const defaultEncoding = "latin1";
+export const defaultEncoding = "ascii";
 export const defaultDICOMEncoding = "iso-ir-192";
