@@ -20,7 +20,7 @@ export class BufferStream {
     /** A flag to set to indicate to clear buffers as they get consumed */
     clearBuffers = false;
 
-    codec = new DicomTextTranscode();
+    textTranscoder = new DicomTextTranscode();
 
     constructor(options = null) {
         this.isLittleEndian = options?.littleEndian || this.isLittleEndian;
@@ -73,7 +73,7 @@ export class BufferStream {
     }
 
     setEncoding(dicomEncoding, ignoreErrors) {
-        this.codec.setEncoding(dicomEncoding, ignoreErrors);
+        this.textTranscoder.setEncoding(dicomEncoding, ignoreErrors);
     }
 
     setEndian(isLittleEndian = true) {
@@ -185,7 +185,7 @@ export class BufferStream {
     }
 
     writeUTF8String(value) {
-        const encodedString = this.codec.encode(value);
+        const encodedString = this.textTranscoder.encode(value);
         this.checkSize(encodedString.byteLength);
         this.view.writeBuffer(encodedString, this.offset);
         return this.increment(encodedString.byteLength);
@@ -316,7 +316,7 @@ export class BufferStream {
         const view = new DataView(
             this.slice(this.offset, this.offset + length)
         );
-        const result = this.codec.decode(view);
+        const result = this.textTranscoder.decode(view);
         this.increment(length);
         return result;
     }
