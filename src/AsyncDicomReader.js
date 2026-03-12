@@ -727,7 +727,12 @@ export class AsyncDicomReader {
                     const delimiterChar = String.fromCharCode(VM_DELIMITER);
                     values = vr.dropPadByte(value.split(delimiterChar));
                 }
-            } else if (vr.type === "OW" || vr.type === "OB") {
+            } else if (
+                vr.type === "OW" ||
+                vr.type === "OB" ||
+                vr.type === "OD" ||
+                vr.type === "OF"
+            ) {
                 values = value;
             } else {
                 Array.isArray(value) ? (values = value) : values.push(value);
