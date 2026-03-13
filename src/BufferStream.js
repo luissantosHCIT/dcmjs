@@ -24,7 +24,7 @@ export class BufferStream {
     textTranscoder = new DicomTextTranscode();
 
     constructor(options = null) {
-        this.isLittleEndian = options?.littleEndian || this.isLittleEndian;
+        this.isLittleEndian = options?.littleEndian ?? this.isLittleEndian;
         this.view.defaultSize = options?.defaultSize ?? this.view.defaultSize;
         this.clearBuffers = options?.clearBuffers || false;
 
