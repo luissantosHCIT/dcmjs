@@ -25,9 +25,7 @@ class DicomDict {
 
     write(
         writeOptions = {
-            allowInvalidVRLength: false,
-            encoding: defaultDICOMEncoding,
-            littleEndian: true
+            allowInvalidVRLength: false
         }
     ) {
         const metaSyntax = EXPLICIT_LITTLE_ENDIAN;
