@@ -560,10 +560,10 @@ class BinaryRepresentation extends ValueRepresentation {
                         // create a new readable stream based on the range
                         const rangeStream = new ReadBufferStream(
                             stream.buffer,
-                            stream.isLittleEndian,
                             {
                                 start: start,
                                 stop: stop,
+                                littleEndian: stream.isLittleEndian,
                                 noCopy: stream.noCopy
                             }
                         );
@@ -1431,7 +1431,7 @@ class ParsedUnknownValue extends BinaryRepresentation {
 
     read(stream, length, syntax, readOptions) {
         const arrayBuffer = this.readBytes(stream, length, syntax)[0];
-        const streamFromBuffer = new ReadBufferStream(arrayBuffer, true);
+        const streamFromBuffer = new ReadBufferStream(arrayBuffer);
         const vr = ValueRepresentation.createByTypeString(this.type);
 
         if (vr.isBinary() && length > vr.maxLength && !vr.noMultiple) {

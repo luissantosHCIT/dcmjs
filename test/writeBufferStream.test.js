@@ -78,7 +78,7 @@ describe("WriteBufferStream Tests", () => {
         out.writeUint16(234);
         out.writeUint8(25);
         const firstSize = out.size;
-        out.concat(new ReadBufferStream(out, out.isLittleEndian, { start: 0 }));
+        out.concat(new ReadBufferStream(out, { start: 0, littleEndian: out.isLittleEndian }));
         expect(out.size).toBe(firstSize * 2);
 
         const checkValues = stream => {
@@ -109,8 +109,9 @@ describe("WriteBufferStream Tests", () => {
         });
 
         it("Should clone with stream", () => {
-            const stream = new ReadBufferStream(out, out.isLittleEndian, {
-                start: 0
+            const stream = new ReadBufferStream(out, {
+                start: 0,
+                littleEndian: out.isLittleEndian,
             });
             expect(stream.size).toBe(out.size);
             checkValues(stream);
@@ -122,9 +123,9 @@ describe("WriteBufferStream Tests", () => {
         it("Should clone with buffer", () => {
             const stream = new ReadBufferStream(
                 out.buffer,
-                out.isLittleEndian,
                 {
-                    stop: out.size
+                    stop: out.size,
+                    littleEndian: out.isLittleEndian,
                 }
             );
             expect(stream.size).toBe(out.size);
@@ -137,7 +138,9 @@ describe("WriteBufferStream Tests", () => {
         it("Should clone with slice", () => {
             const stream = new ReadBufferStream(
                 out.slice(0, out.size),
-                out.isLittleEndian
+                {
+                    littleEndian: out.isLittleEndian
+                }
             );
             expect(stream.size).toBe(out.size);
             checkValues(stream);

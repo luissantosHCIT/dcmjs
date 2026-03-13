@@ -82,7 +82,7 @@ export class DicomDataReadBufferStreamBuilder {
 
     build() {
         const byteArray = new Uint8Array(this.itemArray);
-        return new ReadBufferStream(byteArray.buffer, null, {
+        return new ReadBufferStream(byteArray.buffer, {
             noCopy: this.options.noCopy
         });
     }

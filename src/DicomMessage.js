@@ -136,7 +136,7 @@ export class DicomMessage {
             forceStoreRaw: false
         }
     ) {
-        let stream = new ReadBufferStream(buffer, false, {
+        let stream = new ReadBufferStream(buffer, {
             noCopy: options.noCopy
         });
         const useSyntax = EXPLICIT_LITTLE_ENDIAN;
