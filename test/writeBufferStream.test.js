@@ -2,7 +2,7 @@ import { ReadBufferStream, WriteBufferStream } from "../src/BufferStream";
 
 describe("WriteBufferStream Tests", () => {
     it("writeUint8", () => {
-        const stream = new WriteBufferStream(25, true);
+        const stream = new WriteBufferStream({ defaultSize: 25, littleEndian: true});
         expect(stream).toBeDefined();
         for (let i = 0; i < 512; i++) {
             stream.writeUint8(i % 256);
@@ -24,7 +24,7 @@ describe("WriteBufferStream Tests", () => {
     });
 
     it("writeUint16", () => {
-        const stream = new WriteBufferStream(25, true);
+        const stream = new WriteBufferStream({ defaultSize: 25, littleEndian: true});
         expect(stream).toBeDefined();
         for (let i = 0; i < 512; i++) {
             stream.writeUint16((i * 511) % 0x10000);
@@ -37,7 +37,7 @@ describe("WriteBufferStream Tests", () => {
     });
 
     it("writeUint32", () => {
-        const stream = new WriteBufferStream(25, true);
+        const stream = new WriteBufferStream({ defaultSize: 25, littleEndian: true});
         expect(stream).toBeDefined();
         const expected = [];
         for (let i = 0; i < 512; i++) {
@@ -52,7 +52,7 @@ describe("WriteBufferStream Tests", () => {
     });
 
     it("writesLongStrings", () => {
-        const stream = new WriteBufferStream(32, true);
+        const stream = new WriteBufferStream({ defaultSize: 32});
         let string = "0";
         for (let i = 1; i < 512; i++) {
             string = string + ", " + i;
@@ -62,7 +62,7 @@ describe("WriteBufferStream Tests", () => {
     });
 
     describe("readWorksAfterWrite", () => {
-        const out = new WriteBufferStream(3, true);
+        const out = new WriteBufferStream({ defaultSize: 3});
         const testStr = "Hello World";
         // 64 bits
         out.writeUint8Repeat(1, 128);
