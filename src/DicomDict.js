@@ -31,20 +31,18 @@ class DicomDict {
         }
     ) {
         const metaSyntax = EXPLICIT_LITTLE_ENDIAN;
-        const fileStream = new WriteBufferStream(
-            4096,
-            writeOptions.littleEndian,
-            writeOptions.encoding
-        );
+        const fileStream = new WriteBufferStream({
+            defaultSize: 4096,
+            littleEndian: writeOptions.littleEndian
+        });
 
         fileStream.writeUint8Repeat(0, 128);
         fileStream.writeAsciiString("DICM");
 
-        const metaStream = new WriteBufferStream(
-            1024,
-            writeOptions.littleEndian,
-            writeOptions.encoding
-        );
+        const metaStream = new WriteBufferStream({
+            defaultSize: 1024,
+            littleEndian: writeOptions.littleEndian
+        });
         if (!this.meta[TagHex.TransferSyntaxUID]) {
             this.meta[TagHex.TransferSyntaxUID] = {
                 vr: "UI",

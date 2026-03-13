@@ -427,10 +427,10 @@ class BinaryRepresentation extends ValueRepresentation {
                 bufferLength += fragmentsLength * 8;
             }
 
-            binaryStream = new WriteBufferStream(
-                bufferLength,
-                stream.isLittleEndian
-            );
+            binaryStream = new WriteBufferStream({
+                defaultSize: bufferLength,
+                littleEndian: stream.isLittleEndian
+            });
 
             for (i = 0; i < frames; i++) {
                 const needsPadding = Boolean(value[i].byteLength & 1);

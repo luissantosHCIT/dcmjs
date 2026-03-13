@@ -598,8 +598,22 @@ export class DeflatedReadBufferStream extends ReadBufferStream {
 }
 
 export class WriteBufferStream extends BufferStream {
-    constructor(defaultSize, options = null) {
-        super(options);
+    constructor(options = null) {
+        options instanceof Object
+            ? {}
+            : log.warn(
+                  "The constructor API for WriteBufferStream has changed to include the" +
+                      " littleEndian option as part of the options object. Please, update your usage of the class. We are " +
+                      "using defaults now."
+              );
+        const optionsOptions =
+            options instanceof Object
+                ? options
+                : {
+                      encoding: defaultDICOMEncoding,
+                      littleEndian: options
+                  };
+        super(optionsOptions);
         this.size = 0;
     }
 }

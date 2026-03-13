@@ -149,11 +149,11 @@ class Tag {
         stream.writeUint16(this.group());
         stream.writeUint16(this.element());
 
-        const tagStream = new WriteBufferStream(
-            256,
-            isLittleEndian,
-            writeOptions?.encoding
-        );
+        const tagStream = new WriteBufferStream({
+            defaultSize: 256,
+            littleEndian: isLittleEndian,
+            encoding: writeOptions?.encoding
+        });
         let valueLength;
 
         if (vrType === "OW" || vrType === "OB" || vrType === "UN") {
