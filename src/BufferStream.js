@@ -483,7 +483,7 @@ export class ReadBufferStream extends BufferStream {
             : log.warn(
                   "The constructor API for ReadBufferStream has changed to include the" +
                       " littleEndian option as part of the options object. Please, update your usage of the class. We are " +
-                      "using defaults now."
+                      "using defaults now. See docs/BreakingChanges.md for more details."
               );
         const optionsOptions =
             options instanceof Object
@@ -604,7 +604,7 @@ export class WriteBufferStream extends BufferStream {
             : log.warn(
                   "The constructor API for WriteBufferStream has changed to include the" +
                       " littleEndian option as part of the options object. Please, update your usage of the class. We are " +
-                      "using defaults now."
+                      "using defaults now. See docs/BreakingChanges.md for more details."
               );
         const optionsOptions =
             options instanceof Object
