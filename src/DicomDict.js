@@ -1,7 +1,6 @@
 import { WriteBufferStream } from "./BufferStream";
 import { ValueRepresentation } from "./ValueRepresentation";
 import { TagHex } from "./constants/dicom";
-import { defaultDICOMEncoding } from "./constants/encodings";
 
 const EXPLICIT_LITTLE_ENDIAN = "1.2.840.10008.1.2.1";
 

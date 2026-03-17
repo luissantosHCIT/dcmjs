@@ -1,6 +1,6 @@
 import fs from "fs";
 import crypto from "crypto";
-import dcmjs, { data } from "../src/index.js";
+import dcmjs from "../src/index.js";
 import { deepEqual } from "../src/utilities/deepEqual";
 import {
     DEFLATED_EXPLICIT_LITTLE_ENDIAN,
