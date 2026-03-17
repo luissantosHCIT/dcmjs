@@ -34,7 +34,7 @@ const EXPLICIT_VR_LENGTH32 = [
  * Supports both Implicit and Explicit VR Little Endian for the dataset.
  *
  * @param {ArrayBuffer|Uint8Array} buffer - Raw DICOM file buffer
- * @param {string} [transferSyntaxUID] - Optional. If provided, used to decide Implicit vs Explicit VR (e.g. from meta); avoids parsing meta.
+ * @param {string} [transferSyntaxUIDHint] - Optional. If provided, used to decide Implicit vs Explicit VR (e.g. from meta); avoids parsing meta.
  * @returns {{ length: number, data: ArrayBuffer } | null} - PixelData length and bytes, or null if not found
  */
 function readPixelDataFromRawBuffer(buffer, transferSyntaxUIDHint) {
