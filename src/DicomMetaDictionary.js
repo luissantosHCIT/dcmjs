@@ -5,7 +5,10 @@ import addAccessors from "./utilities/addAccessors";
 import { ValueRepresentation } from "./ValueRepresentation";
 import { encapsulatedSyntaxes } from "./constants/syntaxes";
 import { encodingMapping } from "./constants/encodings";
-import { sopClassNamesByUID } from "./constants/sopClassUIDs";
+import {
+    sopClassNamesByUID,
+    sopClassUIDsByName
+} from "./constants/sopClassUIDs";
 
 export class DicomMetaDictionary {
     // intakes a custom dictionary that will be used to parse/denaturalize the dataset
@@ -388,14 +391,6 @@ export class DicomMetaDictionary {
         return nameMap;
     }
 
-    static _generateUIDMap() {
-        DicomMetaDictionary.sopClassUIDsByName = {};
-        sopClassNamesByUID.keys().forEach(uid => {
-            const name = sopClassNamesByUID.get(uid);
-            DicomMetaDictionary.sopClassUIDsByName[name] = uid;
-        });
-    }
-
     // denaturalizes dataset using custom dictionary and nameMap
     denaturalizeDataset(dataset) {
         return DicomMetaDictionary.denaturalizeDataset(
@@ -416,6 +411,7 @@ DicomMetaDictionary.addEncoding = (dicomEncoding, webEncoding) =>
     encodingMapping.set(dicomEncoding, webEncoding);
 
 // TODO: Is this assignment necessary?
+DicomMetaDictionary.sopClassUIDsByName = sopClassUIDsByName;
 DicomMetaDictionary.sopClassNamesByUID = sopClassNamesByUID;
 DicomMetaDictionary.encapsulatedSyntaxes = encapsulatedSyntaxes;
 DicomMetaDictionary.encodingMapping = encodingMapping;
@@ -426,4 +422,3 @@ ValueRepresentation.setDicomMetaDictionary(DicomMetaDictionary);
 DicomMetaDictionary.dictionary = dictionary;
 
 DicomMetaDictionary._generateNameMap();
-DicomMetaDictionary._generateUIDMap();
