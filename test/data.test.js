@@ -734,7 +734,7 @@ it("Writes encapsulated OB data which has an odd length with a padding byte in i
         _vrMap: { PixelData: "OB" }
     });
 
-    const stream = new WriteBufferStream({ defaultSize: 1024});
+    const stream = new WriteBufferStream({ defaultSize: 1024 });
     const bytesWritten = DicomMessage.write(
         dataset,
         stream,
@@ -876,7 +876,7 @@ describe("With a SpecificCharacterSet tag", () => {
         // - Tag #2: InstitutionName which is a long string tag that will have its value
         //           set to the encoded bytes
         const stream = new WriteBufferStream({
-            defaultSize: 16 +specificCharacterSet.length + encodedBytes.length
+            defaultSize: 16 + specificCharacterSet.length + encodedBytes.length
         });
         stream.setEncoding(specificCharacterSet, readOptions.ignoreErrors);
         stream.setLittleEndian();

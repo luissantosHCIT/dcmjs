@@ -69,10 +69,11 @@ describe("ReadBufferStream Tests", () => {
                 stop: 64,
                 littleEndian: false
             });
-            const subStream = new ReadBufferStream(
-                stream.buffer,
-                { start: stream.offset, stop: stream.size, littleEndian: stream.isLittleEndian }
-            );
+            const subStream = new ReadBufferStream(stream.buffer, {
+                start: stream.offset,
+                stop: stream.size,
+                littleEndian: stream.isLittleEndian
+            });
             expect(subStream.startOffset).toBe(32);
             expect(subStream.endOffset).toBe(64);
             expect(subStream.size).toBe(64);
@@ -87,10 +88,10 @@ describe("ReadBufferStream Tests", () => {
             // This is the recommended way of creating
             // a sub-stream as it allows either copying
             // or referencing the incoming stream data.
-            const subStream = new ReadBufferStream(
-                stream,
-                { stop: 48, littleEndian: stream.isLittleEndian }
-            );
+            const subStream = new ReadBufferStream(stream, {
+                stop: 48,
+                littleEndian: stream.isLittleEndian
+            });
             expect(subStream.available).toBe(16);
             expect(subStream.readUint8()).toBe(32);
         });

@@ -354,7 +354,7 @@ describe("lossless-read-write", () => {
             "00020010": {
                 Value: ["1.2.840.10008.1.2.1"],
                 _rawValue: ["1.2.840.10008.1.2.1"],
-                vr: "UI",
+                vr: "UI"
             }
         };
 
@@ -387,11 +387,9 @@ describe("lossless-read-write", () => {
                 dicomDict.dict = dataset;
 
                 // write and re-read
-                const writtenBuffer = dicomDict.write(
-                    {
-                        encoding
-                    }
-                );
+                const writtenBuffer = dicomDict.write({
+                    encoding
+                });
                 const outputDicomDict = DicomMessage.readFile(writtenBuffer);
 
                 const resultDicomDict = new DicomDict({});

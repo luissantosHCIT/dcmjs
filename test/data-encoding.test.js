@@ -8,12 +8,7 @@ import { selectDICOMEncoding } from "../src/utilities/selectEncoding";
 
 const { DicomMetaDictionary, DicomMessage } = dcmjs.data;
 
-const testEncodingItems = [
-    "utf8",
-    "multiple",
-    "one",
-    "none"
-];
+const testEncodingItems = ["utf8", "multiple", "one", "none"];
 
 const testEncodings = {
     utf8: [defaultDICOMEncoding],
